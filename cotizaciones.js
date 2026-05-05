@@ -525,6 +525,7 @@ function aplicarIvaOpcionUnica() {
 }
 
 function calcularResumenOpcion(productosOpcion, opcion) {
+    // Restaurar lógica: solo productos que NO sean instalación/mantenimiento reciben descuento
     const productosConDescuento = productosOpcion.filter(
         (producto) => !esProductoSinDescuento(producto)
     );
@@ -532,16 +533,14 @@ function calcularResumenOpcion(productosOpcion, opcion) {
         (producto) => esProductoSinDescuento(producto)
     );
 
-    const subtotalConDescuento = redondearMoneda(
-        productosConDescuento.reduce((acc, producto) => acc + obtenerSubtotalProducto(producto), 0)
-    );
-    const subtotalSinDescuento = redondearMoneda(
-        productosSinDescuento.reduce((acc, producto) => acc + obtenerSubtotalProducto(producto), 0)
-    );
+    const subtotalConDescuento = productosConDescuento.reduce((acc, producto) => acc + obtenerSubtotalProducto(producto), 0);
+    const subtotalSinDescuento = productosSinDescuento.reduce((acc, producto) => acc + obtenerSubtotalProducto(producto), 0);
     const subtotal = redondearMoneda(subtotalConDescuento + subtotalSinDescuento);
     const descuentoPorcentaje = obtenerDescuentoOpcion(opcion);
+    // El descuento solo aplica a productos que no sean instalación/mantenimiento
     const valorDescuento = redondearMoneda(subtotalConDescuento * (descuentoPorcentaje / 100));
-    const totalSinIva = redondearMoneda(subtotalConDescuento - valorDescuento + subtotalSinDescuento);
+    // El total sin IVA es: (productos con descuento - descuento) + productos sin descuento
+    const totalSinIva = redondearMoneda((subtotalConDescuento - valorDescuento) + subtotalSinDescuento);
     const ivaAplicado = estaIvaAplicadoOpcion(opcion);
     const valorIva = ivaAplicado ? redondearMoneda(totalSinIva * IVA_RATE) : 0;
     const total = redondearMoneda(totalSinIva + valorIva);
