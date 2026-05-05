@@ -168,6 +168,10 @@
         border-color: var(--danger-strong);
     }
 
+    .print-only {
+        display: none;
+    }
+
     .form-control:focus,
     .form-select:focus {
         border-color: #98a2b3;
@@ -248,13 +252,84 @@
 
     .opcion-header-cell {
         background: #f8fafc;
+        padding: 12px 14px !important;
     }
 
-    .opcion-separador-row td {
-        height: 14px;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
+    .opcion-header-cell-separada {
+        padding-top: 30px !important;
+        background:
+            linear-gradient(to bottom, #ffffff 0 18px, #f8fafc 18px 100%) !important;
+    }
+
+    .opcion-header-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .opcion-header-print {
+        display: none;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .opcion-header-print-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #667085;
+    }
+
+    .opcion-header-print-name {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--brand-strong);
+        line-height: 1.2;
+    }
+
+    .opcion-header-kicker {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #667085;
+    }
+
+    .opcion-header-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--brand-strong);
+        line-height: 1.2;
+    }
+
+    .opcion-header-name:empty {
+        display: none;
+    }
+
+    .opcion-titulo-control {
+        min-width: 220px;
+    }
+
+    body.pdf-export .no-print {
+        display: none !important;
+    }
+
+    body.pdf-export .print-only {
+        display: block !important;
+    }
+
+    body.pdf-export .opcion-header-cell {
+        background-color: #f8fafc !important;
+        padding: 12px 14px !important;
+    }
+
+    body.pdf-export .opcion-header-cell-separada {
+        padding-top: 26px !important;
+        background:
+            linear-gradient(to bottom, #ffffff 0 16px, #f8fafc 16px 100%) !important;
+    }
+
+    body.pdf-export .opcion-header-print {
+        display: flex !important;
     }
 
     .opcion-resumen-row td {
@@ -318,12 +393,14 @@
 
     .totales-card {
         border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 13px 15px;
-        width: min(100%, 360px);
+        border-radius: 12px;
+        padding: 7px 10px;
+        width: min(100%, 260px);
         margin-left: auto;
         background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.07);
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .resumen-linea {
@@ -621,6 +698,10 @@
             display: none !important;
         }
 
+        .print-only {
+            display: block !important;
+        }
+
         body {
             background: #fff;
             color: #111827;
@@ -701,6 +782,32 @@
             display: table-header-group;
         }
 
+        .opcion-header-cell {
+            background-color: #f8fafc !important;
+            padding: 12px 14px !important;
+        }
+
+        .opcion-header-cell-separada {
+            padding-top: 26px !important;
+            background:
+                linear-gradient(to bottom, #ffffff 0 16px, #f8fafc 16px 100%) !important;
+        }
+
+        .opcion-header-title {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+        }
+
+        .opcion-header-print {
+            display: flex !important;
+        }
+
+        .opcion-header-kicker,
+        .opcion-header-name {
+            display: block !important;
+        }
+
         .nota-total-row {
             display: grid !important;
             grid-template-columns: minmax(0, 1fr) 305px;
@@ -754,7 +861,9 @@
         .totales-card {
             box-shadow: none;
             width: 100%;
-            padding: 9px 10px;
+            padding: 7px 8px;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
 
         .descuento-highlight {
@@ -763,10 +872,6 @@
 
         .total-box {
             box-shadow: none;
-        }
-
-        .opcion-separador-row td {
-            height: 10px;
         }
 
         .opcion-resumen-inline {
@@ -795,6 +900,15 @@
         .firma-block {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
+        }
+        /* Asegura que la fila de totales y la tabla estén siempre juntas */
+        .nota-total-row {
+            break-after: avoid-page !important;
+            page-break-after: avoid !important;
+        }
+        .tabla-cotizacion {
+            break-after: avoid-page !important;
+            page-break-after: avoid !important;
         }
     }
 </style>

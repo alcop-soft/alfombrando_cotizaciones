@@ -80,11 +80,14 @@ function esProductoSinDescuento(producto) {
 let productos = [];
 let descuentosPorOpcion = {};
 let ivaPorOpcion = {};
+let titulosPorOpcion = {};
 let opcionActual = 1;
 let ultimaOpcionCreada = 1;
 const opcionesCreadas = new Set([1]);
 let productoEditandoId = null;
 let editarInstalacionModal = null;
+let exportacionEnCurso = false;
+let guardandoEdicion = false;
 const UNIDAD_DEFAULT = "Unidades";
 let notaConfirmada = false;
 const VENDEDORES = {
@@ -188,6 +191,30 @@ function obtenerOpcionesDisponibles() {
         .sort((a, b) => a - b);
 }
 
+function obtenerTituloOpcion(opcion) {
+    const key = String(opcion);
+    const titulo = obtenerTituloPersonalizadoOpcion(opcion);
+    return titulo || `Opción ${opcion}`;
+}
+
+function obtenerTituloPersonalizadoOpcion(opcion) {
+    const key = String(opcion);
+    return (titulosPorOpcion[key] || "").trim();
+}
+
+function actualizarTituloOpcion(opcion, valor) {
+    const key = String(opcion);
+    const titulo = (valor || "").trim();
+    if (titulo) {
+        titulosPorOpcion[key] = titulo;
+    } else {
+        delete titulosPorOpcion[key];
+    }
+    sincronizarOpcionesDisponibles();
+    renderizarTabla();
+    calcularTotales();
+}
+
 function sincronizarOpcionesDisponibles() {
     const opcionActivaSelect = document.getElementById("opcionActiva");
     const opciones = obtenerOpcionesDisponibles();
@@ -205,10 +232,76 @@ function sincronizarOpcionesDisponibles() {
     }
 
     opcionActivaSelect.innerHTML = opciones
-        .map((opcion) => `<option value="${opcion}">Opción ${opcion}</option>`)
+        .map((opcion) => `<option value="${opcion}">${escaparHtml(obtenerTituloOpcion(opcion))}</option>`)
         .join("");
 
     opcionActivaSelect.value = String(opcionActual);
+}
+
+function sincronizarTitulosOpcionesDesdeInputs() {
+    const inputsTitulos = document.querySelectorAll(".opcion-titulo-control[data-opcion]");
+    inputsTitulos.forEach((input) => {
+        const opcion = input.getAttribute("data-opcion");
+        if (!opcion) {
+            return;
+        }
+
+        const titulo = input.value.trim();
+        if (titulo) {
+            titulosPorOpcion[opcion] = titulo;
+        } else {
+            delete titulosPorOpcion[opcion];
+        }
+    });
+}
+
+function prepararExportacionPDF() {
+    sincronizarTitulosOpcionesDesdeInputs();
+    sincronizarOpcionesDisponibles();
+    renderizarTabla();
+    calcularTotales();
+    document.body.classList.add("pdf-export");
+}
+
+function limpiarExportacionPDF() {
+    if (document.body) {
+        document.body.classList.remove("pdf-export");
+    }
+}
+
+function finalizarExportacionPDF() {
+    limpiarExportacionPDF();
+    exportacionEnCurso = false;
+    const botonExportar = document.getElementById("generarPDF");
+    if (botonExportar) {
+        botonExportar.disabled = false;
+    }
+}
+
+function exportarPDF() {
+    if (exportacionEnCurso) {
+        return;
+    }
+
+    exportacionEnCurso = true;
+    const botonExportar = document.getElementById("generarPDF");
+    if (botonExportar) {
+        botonExportar.disabled = true;
+    }
+
+    prepararExportacionPDF();
+
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+            try {
+                window.print();
+            } catch (error) {
+                console.error("No se pudo abrir la impresión:", error);
+                finalizarExportacionPDF();
+                alert("No fue posible abrir la vista de impresión.");
+            }
+        });
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -218,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("fecha").innerText = `Pereira, ${fechaFormateada}`;
 
     document.getElementById("agregarProducto").addEventListener("click", agregarProducto);
-    document.getElementById("generarPDF").addEventListener("click", () => window.print());
+    document.getElementById("generarPDF").addEventListener("click", exportarPDF);
     document.getElementById("agregarTabla").addEventListener("click", agregarNuevaTabla);
     document.getElementById("genero").addEventListener("change", actualizarSaludo);
     document.getElementById("cliente").addEventListener("input", actualizarSaludo);
@@ -293,6 +386,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.bootstrap) {
         const modalElement = document.getElementById("editarInstalacionModal");
         editarInstalacionModal = new window.bootstrap.Modal(modalElement);
+        if (modalElement) {
+            modalElement.addEventListener("hidden.bs.modal", () => {
+                productoEditandoId = null;
+                guardandoEdicion = false;
+                const guardarBtn = document.getElementById("guardarEdicionInstalacion");
+                if (guardarBtn) {
+                    guardarBtn.disabled = false;
+                }
+            });
+        }
     }
 
     const opcionActivaSelect = document.getElementById("opcionActiva");
@@ -311,6 +414,14 @@ document.addEventListener("DOMContentLoaded", () => {
     actualizarNotaRapida();
     renderizarTabla();
     calcularTotales();
+
+    window.addEventListener("beforeprint", prepararExportacionPDF);
+    window.addEventListener("afterprint", finalizarExportacionPDF);
+    window.addEventListener("focus", () => {
+        if (exportacionEnCurso) {
+            window.setTimeout(finalizarExportacionPDF, 300);
+        }
+    });
 });
 
 async function agregarProducto() {
@@ -479,58 +590,75 @@ function abrirModalEdicion(id) {
 }
 
 async function guardarEdicionProducto() {
-    if (productoEditandoId === null) {
+    if (productoEditandoId === null || guardandoEdicion) {
         return;
     }
 
-    const titulo = document.getElementById("editarTitulo").value.trim();
-    const subtitulo = document.getElementById("editarSubtitulo").value.trim();
-    const cantidad = Number.parseFloat(document.getElementById("editarCantidad").value);
-    const precio = Number.parseFloat(document.getElementById("editarPrecio").value);
-    const unidad = leerUnidadSeleccionada("editarUnidad", "editarUnidadPersonalizada");
-
-    if (!titulo || !Number.isFinite(cantidad) || !Number.isFinite(precio) || cantidad <= 0 || precio <= 0) {
-        alert("Complete producto, cantidad y precio con valores válidos.");
-        return;
+    const guardarBtn = document.getElementById("guardarEdicionInstalacion");
+    guardandoEdicion = true;
+    if (guardarBtn) {
+        guardarBtn.disabled = true;
     }
 
-    if (!unidad) {
-        alert("Indique la unidad de medida para la cantidad.");
-        return;
+    try {
+        const titulo = document.getElementById("editarTitulo").value.trim();
+        const subtitulo = document.getElementById("editarSubtitulo").value.trim();
+        const cantidad = Number.parseFloat(document.getElementById("editarCantidad").value);
+        const precio = Number.parseFloat(document.getElementById("editarPrecio").value);
+        const unidad = leerUnidadSeleccionada("editarUnidad", "editarUnidadPersonalizada");
+
+        if (!titulo || !Number.isFinite(cantidad) || !Number.isFinite(precio) || cantidad <= 0 || precio <= 0) {
+            alert("Complete producto, cantidad y precio con valores válidos.");
+            return;
+        }
+
+        if (!unidad) {
+            alert("Indique la unidad de medida para la cantidad.");
+            return;
+        }
+
+        const indice = productos.findIndex((item) => item.id === productoEditandoId);
+        if (indice === -1) {
+            alert("No se encontró el producto que se estaba editando.");
+            return;
+        }
+
+        const nuevaImagen = await leerImagenDesdeInput("editarImagenProducto");
+        const quitarImagenEditar = document.getElementById("quitarImagenEditar");
+        const quitarImagen = quitarImagenEditar ? quitarImagenEditar.checked : false;
+        let imagenFinal = productos[indice].imagen || "";
+        if (nuevaImagen) {
+            imagenFinal = nuevaImagen;
+        } else if (quitarImagen) {
+            imagenFinal = "";
+        }
+
+        productos[indice].titulo = titulo;
+        productos[indice].subtitulo = subtitulo;
+        productos[indice].descripcion = titulo;
+        productos[indice].cantidad = cantidad;
+        productos[indice].unidad = unidad;
+        productos[indice].precio = precio;
+        productos[indice].subtotal = calcularSubtotal(cantidad, precio);
+        productos[indice].imagen = imagenFinal;
+
+        renderizarTabla();
+        calcularTotales();
+
+        if (editarInstalacionModal) {
+            editarInstalacionModal.hide();
+        }
+
+        productoEditandoId = null;
+    } catch (error) {
+        console.error("No se pudo guardar la edición del producto:", error);
+        alert("Ocurrió un error al guardar los cambios.");
+    } finally {
+        guardandoEdicion = false;
+        if (guardarBtn) {
+            guardarBtn.disabled = false;
+        }
     }
-
-    const indice = productos.findIndex((item) => item.id === productoEditandoId);
-    if (indice === -1) {
-        return;
-    }
-
-    const nuevaImagen = await leerImagenDesdeInput("editarImagenProducto");
-    const quitarImagenEditar = document.getElementById("quitarImagenEditar");
-    const quitarImagen = quitarImagenEditar ? quitarImagenEditar.checked : false;
-    let imagenFinal = productos[indice].imagen || "";
-    if (nuevaImagen) {
-        imagenFinal = nuevaImagen;
-    } else if (quitarImagen) {
-        imagenFinal = "";
-    }
-
-    productos[indice].titulo = titulo;
-    productos[indice].subtitulo = subtitulo;
-    productos[indice].descripcion = titulo;
-    productos[indice].cantidad = cantidad;
-    productos[indice].unidad = unidad;
-    productos[indice].precio = precio;
-    productos[indice].subtotal = calcularSubtotal(cantidad, precio);
-    productos[indice].imagen = imagenFinal;
-
-    renderizarTabla();
-    calcularTotales();
-
-    if (editarInstalacionModal) {
-        editarInstalacionModal.hide();
-    }
-
-    productoEditandoId = null;
 }
 
 function agregarNuevaTabla() {
@@ -571,18 +699,34 @@ function renderizarTabla() {
         const productosOpcion = opciones[opcion];
         const resumenOpcion = calcularResumenOpcion(productosOpcion, opcion);
         if (numeroOpciones > 1) {
-            if (index > 0) {
-                const trSeparador = document.createElement("tr");
-                trSeparador.className = "opcion-separador-row";
-                trSeparador.innerHTML = `<td colspan="${mostrarColumnaImagen ? 6 : 5}"></td>`;
-                tbody.appendChild(trSeparador);
-            }
+            const tituloOpcion = obtenerTituloPersonalizadoOpcion(opcion);
+            const tituloVisible = obtenerTituloOpcion(opcion) || `Opción ${opcion}`;
             const trHeader = document.createElement("tr");
+            const clasesHeader = index > 0
+                ? "opcion-header-cell opcion-header-cell-separada"
+                : "opcion-header-cell";
             trHeader.innerHTML = `
-                <td colspan="${mostrarColumnaImagen ? 6 : 5}" class="opcion-header-cell">
-                    <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
-                        <span class="fw-bold">OPCIÓN ${opcion}</span>
+                <td colspan="${mostrarColumnaImagen ? 6 : 5}" class="${clasesHeader}">
+                    <div class="opcion-header-print print-only">
+                        <span class="opcion-header-print-gap" aria-hidden="true"></span>
+                        <span class="opcion-header-print-label">Opción ${opcion}</span>
+                        <span class="opcion-header-print-name">${escaparHtml(tituloVisible)}</span>
+                    </div>
+                    <div class="opcion-header-screen d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
+                        <div class="opcion-header-title">
+                            <span class="opcion-header-kicker">Opción ${opcion}</span>
+                            <span class="opcion-header-name">${escaparHtml(tituloOpcion || `Opción ${opcion}`)}</span>
+                        </div>
                         <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
+                            <input
+                                type="text"
+                                class="form-control form-control-sm no-print opcion-titulo-control"
+                                data-opcion="${opcion}"
+                                placeholder="Título de la opción"
+                                value="${escaparHtml(tituloOpcion)}"
+                                oninput="actualizarTituloOpcion(${opcion}, this.value)"
+                                onchange="actualizarTituloOpcion(${opcion}, this.value)"
+                            >
                             <div class="input-group input-group-sm no-print descuento-opcion-control">
                                 <span class="input-group-text">Descuento %</span>
                                 <input
