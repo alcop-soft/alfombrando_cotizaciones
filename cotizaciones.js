@@ -90,6 +90,7 @@ let exportacionEnCurso = false;
 let guardandoEdicion = false;
 const UNIDAD_DEFAULT = "Unidades";
 let notaConfirmada = false;
+let notaImagen = "";
 const VENDEDORES = {
     "Mateo Vanegas": "315 2762255",
     "Marina Arbelaez": "320 8940228",
@@ -116,6 +117,12 @@ function leerImagenDesdeInput(inputId) {
         lector.onerror = () => resolve("");
         lector.readAsDataURL(archivo);
     });
+}
+
+async function confirmarNotaRapida() {
+    notaConfirmada = true;
+    notaImagen = await leerImagenDesdeInput("notaRapidaImagen");
+    actualizarNotaRapida();
 }
 
 function toggleUnidadPersonalizada(selectEl, inputEl) {
@@ -365,19 +372,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const notaRapidaInput = document.getElementById("notaRapidaInput");
+    const notaRapidaImagenInput = document.getElementById("notaRapidaImagen");
     const agregarNotaBtn = document.getElementById("agregarNota");
     const eliminarNotaBtn = document.getElementById("eliminarNota");
     if (agregarNotaBtn) {
-        agregarNotaBtn.addEventListener("click", () => {
-            notaConfirmada = true;
-            actualizarNotaRapida();
+        agregarNotaBtn.addEventListener("click", async () => {
+            await confirmarNotaRapida();
+        });
+    }
+    if (notaRapidaImagenInput) {
+        notaRapidaImagenInput.addEventListener("change", async () => {
+            if (notaConfirmada) {
+                await confirmarNotaRapida();
+            }
         });
     }
     if (eliminarNotaBtn) {
         eliminarNotaBtn.addEventListener("click", () => {
             notaConfirmada = false;
+            notaImagen = "";
             if (notaRapidaInput) {
                 notaRapidaInput.value = "";
+            }
+            if (notaRapidaImagenInput) {
+                notaRapidaImagenInput.value = "";
             }
             actualizarNotaRapida();
         });
@@ -989,19 +1007,30 @@ function actualizarNotaRapida() {
     const notaInput = document.getElementById("notaRapidaInput");
     const notaTexto = document.getElementById("notaRapidaTexto");
     const notaCard = document.getElementById("notaRapidaCard");
+    const notaMedia = document.getElementById("notaRapidaMedia");
+    const notaImagenPreview = document.getElementById("notaRapidaImagenPreview");
 
     if (!notaTexto) {
         return;
     }
 
     const texto = notaInput ? notaInput.value.trim() : "";
-    const mostrarNota = notaConfirmada && texto.length > 0;
+    const mostrarImagen = notaConfirmada && Boolean(notaImagen);
+    const mostrarNota = notaConfirmada && (texto.length > 0 || mostrarImagen);
 
     if (notaCard) {
         notaCard.classList.toggle("d-none", !mostrarNota);
+        notaCard.classList.toggle("con-imagen", mostrarImagen);
     }
 
     notaTexto.innerText = mostrarNota ? texto : "";
+    if (notaImagenPreview) {
+        notaImagenPreview.classList.toggle("d-none", !mostrarImagen);
+        notaImagenPreview.src = mostrarImagen ? notaImagen : "";
+    }
+    if (notaMedia) {
+        notaMedia.classList.toggle("sin-imagen", !mostrarImagen);
+    }
     const totalesVisibles = !document.querySelector(".totales-col")?.classList.contains("d-none");
     actualizarLayoutResumen({ mostrarNota, mostrarTotales: totalesVisibles });
 }
