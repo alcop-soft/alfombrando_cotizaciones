@@ -692,7 +692,7 @@
 
     @media print {
         @page {
-            margin: 12mm 10mm 12mm 10mm;
+            margin: 9mm 8mm 9mm 8mm;
         }
 
         * {
@@ -721,7 +721,14 @@
             box-shadow: none;
             border: none;
             border-radius: 0;
-            padding-left: 88px;
+            padding-left: 72px;
+        }
+
+        body,
+        .cotizacion-container,
+        .tabla-cotizacion {
+            font-size: 11px !important;
+            line-height: 1.15 !important;
         }
 
         .tabla-cotizacion th:last-child,
@@ -782,32 +789,80 @@
         .tabla-cotizacion th {
             background-color: #f1f5f9 !important;
             color: #1f2937 !important;
+            font-size: 0.72rem !important;
+            padding: 5px 6px !important;
+            line-height: 1.1 !important;
         }
 
         .tabla-cotizacion thead {
             display: table-header-group;
+            break-after: avoid-page !important;
+            page-break-after: avoid !important;
+        }
+
+        .tabla-cotizacion tbody {
+            break-before: avoid-page !important;
+            page-break-before: avoid !important;
+        }
+
+        .tabla-cotizacion td {
+            padding: 4px 6px !important;
+            line-height: 1.1 !important;
+        }
+
+        .descripcion-producto-titulo {
+            font-size: 0.78rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .descripcion-producto-subtitulo {
+            font-size: 0.68rem !important;
+            line-height: 1.05 !important;
+            margin-top: 1px !important;
+        }
+
+        .producto-img {
+            width: 82px !important;
+            max-height: 82px !important;
+            border-radius: 4px !important;
         }
 
         .opcion-header-cell {
             background-color: #f8fafc !important;
-            padding: 12px 14px !important;
+            padding: 7px 8px !important;
+            break-after: avoid-page !important;
+            page-break-after: avoid !important;
         }
 
         .opcion-header-cell-separada {
-            padding-top: 26px !important;
+            padding-top: 14px !important;
             background:
-                linear-gradient(to bottom, #ffffff 0 16px, #f8fafc 16px 100%) !important;
+                linear-gradient(to bottom, #ffffff 0 8px, #f8fafc 8px 100%) !important;
         }
 
         .opcion-header-title {
             display: flex !important;
             flex-direction: column !important;
-            gap: 2px !important;
+            gap: 1px !important;
         }
 
         .opcion-header-kicker,
         .opcion-header-name {
             display: block !important;
+        }
+
+        .opcion-header-kicker {
+            font-size: 0.58rem !important;
+        }
+
+        .opcion-header-name {
+            font-size: 0.8rem !important;
+            line-height: 1.05 !important;
+        }
+
+        .opcion-resumen-row td {
+            padding-top: 5px !important;
+            padding-bottom: 6px !important;
         }
 
         .nota-total-row {
@@ -893,17 +948,28 @@
         }
 
         .opcion-resumen-card {
-            min-width: 126px;
-            padding: 6px 8px;
+            min-width: 98px;
+            padding: 4px 6px;
+            border-radius: 7px;
+        }
+
+        .opcion-resumen-card-label {
+            font-size: 0.56rem !important;
+        }
+
+        .opcion-resumen-card-value {
+            font-size: 0.72rem !important;
         }
 
         .firma-block {
-            margin-top: 14px;
+            margin-top: 10px;
         }
 
         .tabla-cotizacion tr,
         .tabla-cotizacion td,
         .tabla-cotizacion th,
+        .tabla-cotizacion thead,
+        .tabla-cotizacion tbody,
         .tabla-cotizacion,
         .nota-total-row,
         .nota-col,
