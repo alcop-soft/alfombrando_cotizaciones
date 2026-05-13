@@ -198,6 +198,10 @@ function obtenerTituloOpcion(opcion) {
     return obtenerTituloPersonalizadoOpcion(opcion);
 }
 
+function obtenerEtiquetaOpcion(opcion) {
+    return `Opción ${opcion}`;
+}
+
 function obtenerTituloPersonalizadoOpcion(opcion) {
     const key = String(opcion);
     return (titulosPorOpcion[key] || "").trim();
@@ -246,7 +250,7 @@ function sincronizarOpcionesDisponibles() {
     }
 
     opcionActivaSelect.innerHTML = opciones
-        .map((opcion) => `<option value="${opcion}">${escaparHtml(obtenerTituloOpcion(opcion))}</option>`)
+        .map((opcion) => `<option value="${opcion}">${escaparHtml(obtenerEtiquetaOpcion(opcion))}</option>`)
         .join("");
 
     opcionActivaSelect.value = String(opcionActual);
@@ -696,22 +700,12 @@ function obtenerEncabezadoTablaHtml(mostrarColumnaImagen) {
 }
 
 function obtenerFilaEncabezadoOpcionHtml(opcion, resumenOpcion, mostrarColumnaImagen) {
-    const tituloOpcion = obtenerTituloOpcion(opcion);
     const totalColumnas = mostrarColumnaImagen ? 6 : 5;
-    const tituloHtml = tituloOpcion
-        ? `
-                    <div class="opcion-header-title">
-                        <span class="opcion-header-kicker">${escaparHtml(tituloOpcion)}</span>
-                        <span class="opcion-header-name"></span>
-                    </div>
-        `
-        : "";
 
     return `
-        <tr>
+        <tr class="no-print">
             <td colspan="${totalColumnas}" class="opcion-header-cell">
                 <div class="opcion-header-screen d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
-                    ${tituloHtml}
                     <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
                         <div class="input-group input-group-sm no-print descuento-opcion-control">
                             <span class="input-group-text">Descuento %</span>
@@ -917,6 +911,7 @@ function renderizarTabla() {
     contenedor.innerHTML = llaves.map((opcion) => {
         const productosOpcion = opciones[opcion];
         const resumenOpcion = calcularResumenOpcion(productosOpcion, opcion);
+        const tituloOpcion = obtenerTituloOpcion(opcion);
         const filasProductosHtml = productosOpcion
             .map((producto) => obtenerFilaProductoHtml(producto, mostrarColumnaImagen))
             .join("");
@@ -926,9 +921,17 @@ function renderizarTabla() {
         const resumenOpcionHtml = numeroOpciones > 1
             ? obtenerFilaResumenOpcionHtml(resumenOpcion, mostrarColumnaImagen)
             : "";
+        const tituloVisibleHtml = tituloOpcion
+            ? `
+                <div class="opcion-header-title mb-2">
+                    <span class="opcion-header-name">${escaparHtml(tituloOpcion)}</span>
+                </div>
+            `
+            : "";
 
         return `
             <section class="opcion-bloque" data-opcion="${opcion}">
+                ${tituloVisibleHtml}
                 <table class="table table-bordered tabla-cotizacion">
                     ${obtenerEncabezadoTablaHtml(mostrarColumnaImagen)}
                     <tbody>
