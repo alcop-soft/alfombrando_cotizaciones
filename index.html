@@ -67,7 +67,7 @@
         border-bottom: 2px solid var(--line);
     }
 
-    .tabla-cotizacion th#columnaImagen {
+    .tabla-cotizacion th.columna-imagen-header {
         min-width: 170px;
     }
 
@@ -78,6 +78,21 @@
     .tabla-cotizacion td {
         vertical-align: middle;
         border-bottom: 1px solid #e9edf3;
+    }
+
+    .opciones-tablas {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .opcion-bloque {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .opcion-bloque .tabla-cotizacion {
+        margin-bottom: 0;
     }
 
     .descripcion-producto {
@@ -302,12 +317,6 @@
     .opcion-header-cell {
         background: #f8fafc;
         padding: 12px 14px !important;
-    }
-
-    .opcion-header-cell-separada {
-        padding-top: 30px !important;
-        background:
-            linear-gradient(to bottom, #ffffff 0 18px, #f8fafc 18px 100%) !important;
     }
 
     .opcion-header-title {
@@ -788,15 +797,23 @@
             display: table-header-group;
         }
 
+        .opciones-tablas {
+            gap: 10px;
+        }
+
+        .opcion-bloque {
+            break-inside: avoid-page !important;
+            page-break-inside: avoid !important;
+        }
+
+        .opcion-bloque-salto {
+            break-before: page !important;
+            page-break-before: always !important;
+        }
+
         .opcion-header-cell {
             background-color: #f8fafc !important;
             padding: 12px 14px !important;
-        }
-
-        .opcion-header-cell-separada {
-            padding-top: 26px !important;
-            background:
-                linear-gradient(to bottom, #ffffff 0 16px, #f8fafc 16px 100%) !important;
         }
 
         .opcion-header-title {
@@ -1005,6 +1022,7 @@
                     <select id="opcionActiva" class="form-select">
                         <option value="1">Opción 1</option>
                     </select>
+                    <input type="text" id="opcionTituloActual" class="form-control mt-2" placeholder="Nombre de la opción">
                     <div class="form-text">Puedes volver a una opción anterior para seguir sumando productos.</div>
                 </div>
                 <div class="col-md-5 d-flex align-items-end">
@@ -1078,19 +1096,7 @@
 
     <p>Para ALCOP es un agrado poner a su disposición la siguiente cotización:</p>
 
-    <table class="table table-bordered tabla-cotizacion mt-4">
-        <thead>
-            <tr>
-                <th>DESCRIPCIÓN</th>
-                <th>CANT.</th>
-                <th>P. UNIT.</th>
-                <th>SUBTOTAL</th>
-                <th id="columnaImagen">IMAGEN</th>
-                <th>ACCIONES</th>
-            </tr>
-        </thead>
-        <tbody id="tablaBody"></tbody>
-    </table>
+    <div id="opcionesTablas" class="opciones-tablas mt-4"></div>
 
     <div class="mt-4 nota-total-row">
         <div class="nota-col">

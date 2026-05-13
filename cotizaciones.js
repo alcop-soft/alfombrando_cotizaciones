@@ -68,10 +68,6 @@ function obtenerTextoProducto(producto) {
     return `${obtenerTituloProducto(producto)} ${obtenerSubtituloProducto(producto)}`.trim();
 }
 
-function esProductoInstalacion(producto) {
-    return normalizarTexto(obtenerTextoProducto(producto)).includes("instalacion");
-}
-
 function esProductoSinDescuento(producto) {
     const descripcion = normalizarTexto(obtenerTextoProducto(producto));
     return descripcion.includes("instalacion") || descripcion.includes("mantenimiento");
@@ -199,9 +195,7 @@ function obtenerOpcionesDisponibles() {
 }
 
 function obtenerTituloOpcion(opcion) {
-    const key = String(opcion);
-    const titulo = obtenerTituloPersonalizadoOpcion(opcion);
-    return titulo || `Opción ${opcion}`;
+    return obtenerTituloPersonalizadoOpcion(opcion);
 }
 
 function obtenerTituloPersonalizadoOpcion(opcion) {
@@ -218,8 +212,21 @@ function actualizarTituloOpcion(opcion, valor) {
         delete titulosPorOpcion[key];
     }
     sincronizarOpcionesDisponibles();
-    renderizarTabla();
-    calcularTotales();
+    sincronizarInputTituloOpcion();
+    refrescarCotizacion();
+}
+
+function sincronizarInputTituloOpcion() {
+    const opcionActivaSelect = document.getElementById("opcionActiva");
+    const opcionTituloActualInput = document.getElementById("opcionTituloActual");
+    if (!opcionActivaSelect || !opcionTituloActualInput) {
+        return;
+    }
+
+    const opcionSeleccionada = opcionActivaSelect.value;
+    opcionTituloActualInput.value = opcionSeleccionada
+        ? obtenerTituloPersonalizadoOpcion(opcionSeleccionada)
+        : "";
 }
 
 function sincronizarOpcionesDisponibles() {
@@ -243,37 +250,22 @@ function sincronizarOpcionesDisponibles() {
         .join("");
 
     opcionActivaSelect.value = String(opcionActual);
+    sincronizarInputTituloOpcion();
 }
 
-function sincronizarTitulosOpcionesDesdeInputs() {
-    const inputsTitulos = document.querySelectorAll(".opcion-titulo-control[data-opcion]");
-    inputsTitulos.forEach((input) => {
-        const opcion = input.getAttribute("data-opcion");
-        if (!opcion) {
-            return;
-        }
-
-        const titulo = input.value.trim();
-        if (titulo) {
-            titulosPorOpcion[opcion] = titulo;
-        } else {
-            delete titulosPorOpcion[opcion];
-        }
-    });
+function refrescarCotizacion() {
+    renderizarTabla();
+    calcularTotales();
 }
 
 function prepararExportacionPDF() {
-    sincronizarTitulosOpcionesDesdeInputs();
     sincronizarOpcionesDisponibles();
-    renderizarTabla();
-    calcularTotales();
-    document.body.classList.add("pdf-export");
+    refrescarCotizacion();
+    optimizarSaltosPaginaOpciones();
 }
 
 function limpiarExportacionPDF() {
-    if (document.body) {
-        document.body.classList.remove("pdf-export");
-    }
+    limpiarSaltosPaginaOpciones();
 }
 
 function finalizarExportacionPDF() {
@@ -417,12 +409,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const opcionActivaSelect = document.getElementById("opcionActiva");
+    const opcionTituloActualInput = document.getElementById("opcionTituloActual");
     if (opcionActivaSelect) {
         opcionActivaSelect.addEventListener("change", () => {
             const opcionSeleccionada = Number.parseInt(opcionActivaSelect.value, 10);
             if (Number.isFinite(opcionSeleccionada) && opcionSeleccionada > 0) {
                 opcionActual = opcionSeleccionada;
             }
+            sincronizarInputTituloOpcion();
+        });
+    }
+    if (opcionTituloActualInput) {
+        opcionTituloActualInput.addEventListener("input", () => {
+            const opcionSeleccionada = opcionActivaSelect ? opcionActivaSelect.value : "";
+            if (!opcionSeleccionada) {
+                return;
+            }
+            actualizarTituloOpcion(opcionSeleccionada, opcionTituloActualInput.value);
         });
     }
 
@@ -430,8 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
     actualizarSaludo();
     actualizarNombreVendedor();
     actualizarNotaRapida();
-    renderizarTabla();
-    calcularTotales();
+    refrescarCotizacion();
 
     window.addEventListener("beforeprint", prepararExportacionPDF);
     window.addEventListener("afterprint", finalizarExportacionPDF);
@@ -478,8 +480,7 @@ async function agregarProducto() {
     opcionesCreadas.add(opcionActual);
 
     document.getElementById("nombreCliente").innerText = cliente;
-    renderizarTabla();
-    calcularTotales();
+    refrescarCotizacion();
 
     document.getElementById("producto").value = "";
     document.getElementById("productoDescripcion").value = "";
@@ -511,8 +512,7 @@ function actualizarDescuentoOpcion(opcion, valor) {
     const key = String(opcion);
     const descuento = Number.parseFloat(valor);
     descuentosPorOpcion[key] = Number.isFinite(descuento) ? Math.max(0, Math.min(100, descuento)) : 0;
-    renderizarTabla();
-    calcularTotales();
+    refrescarCotizacion();
 }
 
 function aplicarDescuentoOpcionUnica() {
@@ -531,8 +531,7 @@ function estaIvaAplicadoOpcion(opcion) {
 function actualizarIvaOpcion(opcion, aplicar) {
     const key = String(opcion);
     ivaPorOpcion[key] = Boolean(aplicar);
-    renderizarTabla();
-    calcularTotales();
+    refrescarCotizacion();
 }
 
 function aplicarIvaOpcionUnica() {
@@ -543,7 +542,6 @@ function aplicarIvaOpcionUnica() {
 }
 
 function calcularResumenOpcion(productosOpcion, opcion) {
-    // Restaurar lógica: solo productos que NO sean instalación/mantenimiento reciben descuento
     const productosConDescuento = productosOpcion.filter(
         (producto) => !esProductoSinDescuento(producto)
     );
@@ -555,9 +553,7 @@ function calcularResumenOpcion(productosOpcion, opcion) {
     const subtotalSinDescuento = productosSinDescuento.reduce((acc, producto) => acc + obtenerSubtotalProducto(producto), 0);
     const subtotal = redondearMoneda(subtotalConDescuento + subtotalSinDescuento);
     const descuentoPorcentaje = obtenerDescuentoOpcion(opcion);
-    // El descuento solo aplica a productos que no sean instalación/mantenimiento
     const valorDescuento = redondearMoneda(subtotalConDescuento * (descuentoPorcentaje / 100));
-    // El total sin IVA es: (productos con descuento - descuento) + productos sin descuento
     const totalSinIva = redondearMoneda((subtotalConDescuento - valorDescuento) + subtotalSinDescuento);
     const ivaAplicado = estaIvaAplicadoOpcion(opcion);
     const valorIva = ivaAplicado ? redondearMoneda(totalSinIva * IVA_RATE) : 0;
@@ -576,8 +572,7 @@ function calcularResumenOpcion(productosOpcion, opcion) {
 
 function eliminarProducto(id) {
     productos = productos.filter((producto) => producto.id !== id);
-    renderizarTabla();
-    calcularTotales();
+    refrescarCotizacion();
 }
 
 function abrirModalEdicion(id) {
@@ -659,8 +654,7 @@ async function guardarEdicionProducto() {
         productos[indice].subtotal = calcularSubtotal(cantidad, precio);
         productos[indice].imagen = imagenFinal;
 
-        renderizarTabla();
-        calcularTotales();
+        refrescarCotizacion();
 
         if (editarInstalacionModal) {
             editarInstalacionModal.hide();
@@ -686,182 +680,266 @@ function agregarNuevaTabla() {
     alert(`Nueva opción ${opcionActual} creada. Los siguientes productos pertenecerán a esta opción.`);
 }
 
-function renderizarTabla() {
-    const tbody = document.getElementById("tablaBody");
-    const columnaImagen = document.getElementById("columnaImagen");
-    if (!tbody) {
+function obtenerEncabezadoTablaHtml(mostrarColumnaImagen) {
+    return `
+        <thead>
+            <tr>
+                <th>DESCRIPCIÓN</th>
+                <th>CANT.</th>
+                <th>P. UNIT.</th>
+                <th>SUBTOTAL</th>
+                ${mostrarColumnaImagen ? '<th class="columna-imagen-header">IMAGEN</th>' : ""}
+                <th>ACCIONES</th>
+            </tr>
+        </thead>
+    `;
+}
+
+function obtenerFilaEncabezadoOpcionHtml(opcion, resumenOpcion, mostrarColumnaImagen) {
+    const tituloOpcion = obtenerTituloOpcion(opcion);
+    const totalColumnas = mostrarColumnaImagen ? 6 : 5;
+    const tituloHtml = tituloOpcion
+        ? `
+                    <div class="opcion-header-title">
+                        <span class="opcion-header-kicker">${escaparHtml(tituloOpcion)}</span>
+                        <span class="opcion-header-name"></span>
+                    </div>
+        `
+        : "";
+
+    return `
+        <tr>
+            <td colspan="${totalColumnas}" class="opcion-header-cell">
+                <div class="opcion-header-screen d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
+                    ${tituloHtml}
+                    <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
+                        <div class="input-group input-group-sm no-print descuento-opcion-control">
+                            <span class="input-group-text">Descuento %</span>
+                            <input
+                                type="number"
+                                class="form-control"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value="${resumenOpcion.descuentoPorcentaje}"
+                                onchange="actualizarDescuentoOpcion(${opcion}, this.value)"
+                            >
+                        </div>
+                        <div class="form-check no-print">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="ivaOpcion${opcion}"
+                                ${resumenOpcion.ivaAplicado ? "checked" : ""}
+                                onchange="actualizarIvaOpcion(${opcion}, this.checked)"
+                            >
+                            <label class="form-check-label small" for="ivaOpcion${opcion}">
+                                Aplicar IVA 19%
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function obtenerFilaProductoHtml(producto, mostrarColumnaImagen) {
+    const subtotalProducto = obtenerSubtotalProducto(producto);
+    producto.subtotal = subtotalProducto;
+    const tituloProducto = obtenerTituloProducto(producto);
+    const subtituloProducto = obtenerSubtituloProducto(producto);
+    const tituloSeguro = escaparHtml(tituloProducto);
+    const subtituloSeguro = escaparHtml(subtituloProducto);
+    const descripcionCelda = subtituloSeguro
+        ? `
+            <div class="descripcion-producto">
+                <div class="descripcion-producto-titulo">${tituloSeguro}</div>
+                <div class="descripcion-producto-subtitulo">${subtituloSeguro}</div>
+            </div>
+        `
+        : `
+            <div class="descripcion-producto">
+                <div class="descripcion-producto-titulo">${tituloSeguro}</div>
+            </div>
+        `;
+    const imagenCelda = producto.imagen
+        ? `<img src="${producto.imagen}" alt="Imagen de ${tituloSeguro || "producto"}" class="producto-img">`
+        : '<span class="text-muted">Sin imagen</span>';
+    const unidadTexto = producto.unidad ? ` ${escaparHtml(producto.unidad)}` : "";
+    const botonEditar = `
+        <button class="btn btn-sm btn-primary me-1" onclick="abrirModalEdicion(${producto.id})">
+            <i class="bi bi-pencil-square"></i> Editar
+        </button>
+    `;
+
+    return `
+        <tr>
+            <td>${descripcionCelda}</td>
+            <td class="text-center">${formatoNumero(producto.cantidad)}${unidadTexto}</td>
+            <td class="text-end">${formatoPeso(producto.precio)}</td>
+            <td class="text-end">${formatoPeso(subtotalProducto)}</td>
+            ${mostrarColumnaImagen ? `<td class="text-center columna-imagen-celda">${imagenCelda}</td>` : ""}
+            <td class="text-center">
+                ${botonEditar}
+                <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${producto.id})">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
+function obtenerFilaResumenOpcionHtml(resumenOpcion, mostrarColumnaImagen) {
+    const mostrarDetalle = resumenOpcion.valorDescuento > 0 || resumenOpcion.valorIva > 0;
+    const resumenPills = [];
+    if (mostrarDetalle) {
+        resumenPills.push(`
+            <div class="opcion-resumen-card">
+                <span class="opcion-resumen-card-label">Subtotal</span>
+                <span class="opcion-resumen-card-value">${formatoPeso(resumenOpcion.subtotal)}</span>
+            </div>
+        `);
+    }
+    if (resumenOpcion.valorDescuento > 0) {
+        resumenPills.push(`
+            <div class="opcion-resumen-card opcion-resumen-card-descuento">
+                <span class="opcion-resumen-card-label">Descuento ${formatoNumero(resumenOpcion.descuentoPorcentaje)}%</span>
+                <span class="opcion-resumen-card-value">Ahorro: -${formatoPeso(resumenOpcion.valorDescuento)}</span>
+            </div>
+        `);
+    }
+    if (resumenOpcion.valorIva > 0) {
+        resumenPills.push(`
+            <div class="opcion-resumen-card opcion-resumen-card-iva">
+                <span class="opcion-resumen-card-label">IVA 19%</span>
+                <span class="opcion-resumen-card-value">+${formatoPeso(resumenOpcion.valorIva)}</span>
+            </div>
+        `);
+    }
+    const resumenPillsHtml = resumenPills.length > 0
+        ? `<div class="opcion-resumen-inline">${resumenPills.join("")}</div>`
+        : "";
+
+    return `
+        <tr class="opcion-resumen-row">
+            <td colspan="3" class="text-end">${resumenPillsHtml}</td>
+            <td class="text-end fw-bold">${resumenOpcion.ivaAplicado ? "Total + IVA" : "Total"}: ${formatoPeso(resumenOpcion.total)}</td>
+            ${mostrarColumnaImagen ? "<td></td>" : ""}
+            <td></td>
+        </tr>
+    `;
+}
+
+function obtenerTablaVaciaHtml(mostrarColumnaImagen) {
+    const totalColumnas = mostrarColumnaImagen ? 6 : 5;
+    return `
+        <section class="opcion-bloque">
+            <table class="table table-bordered tabla-cotizacion">
+                ${obtenerEncabezadoTablaHtml(mostrarColumnaImagen)}
+                <tbody>
+                    <tr>
+                        <td colspan="${totalColumnas}" class="text-center text-muted">No hay productos agregados</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    `;
+}
+
+function optimizarSaltosPaginaOpciones() {
+    const bloques = Array.from(document.querySelectorAll(".opcion-bloque"));
+    const contenedor = document.getElementById("opcionesTablas");
+    if (!bloques.length || !contenedor) {
         return;
     }
+
+    bloques.forEach((bloque) => bloque.classList.remove("opcion-bloque-salto"));
+
+    const MM_TO_PX = 96 / 25.4;
+    const ALTO_PAGINA_DISPONIBLE_MM = 297 - 18;
+    const altoPaginaPx = ALTO_PAGINA_DISPONIBLE_MM * MM_TO_PX;
+    const primerBloqueRect = bloques[0].getBoundingClientRect();
+    const primerBloqueTop = primerBloqueRect.top + window.scrollY;
+    let espacioConsumido = primerBloqueTop % altoPaginaPx;
+    let ultimoBottom = primerBloqueTop + primerBloqueRect.height;
+
+    bloques.forEach((bloque, index) => {
+        const estilos = window.getComputedStyle(bloque);
+        const margenSuperior = Number.parseFloat(estilos.marginTop) || 0;
+        const margenInferior = Number.parseFloat(estilos.marginBottom) || 0;
+        const bloqueRect = bloque.getBoundingClientRect();
+        const bloqueTop = bloqueRect.top + window.scrollY;
+        const alturaBloque = bloqueRect.height + margenSuperior + margenInferior;
+        const separacionReal = index > 0 ? Math.max(0, bloqueTop - ultimoBottom) : 0;
+        const espacioNecesario = separacionReal + alturaBloque;
+        const espacioRestante = altoPaginaPx - espacioConsumido;
+        const cabeCompleto = alturaBloque <= altoPaginaPx;
+        const requiereSalto = index > 0 && cabeCompleto && espacioNecesario > espacioRestante;
+
+        if (requiereSalto) {
+            bloque.classList.add("opcion-bloque-salto");
+            espacioConsumido = alturaBloque;
+        } else {
+            espacioConsumido += espacioNecesario;
+        }
+
+        espacioConsumido %= altoPaginaPx;
+        ultimoBottom = bloqueTop + bloqueRect.height;
+    });
+}
+
+function limpiarSaltosPaginaOpciones() {
+    document.querySelectorAll(".opcion-bloque-salto").forEach((bloque) => {
+        bloque.classList.remove("opcion-bloque-salto");
+    });
+}
+
+function renderizarTabla() {
+    const contenedor = document.getElementById("opcionesTablas");
+    if (!contenedor) {
+        return;
+    }
+
     const mostrarColumnaImagen = productos.some((producto) => Boolean(producto.imagen));
     sincronizarOpcionesDisponibles();
 
-    tbody.innerHTML = "";
-    if (columnaImagen) {
-        columnaImagen.style.display = mostrarColumnaImagen ? "" : "none";
-    }
+    contenedor.innerHTML = "";
 
     if (productos.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="${mostrarColumnaImagen ? 6 : 5}" class="text-center text-muted">No hay productos agregados</td>
-            </tr>
-        `;
+        contenedor.innerHTML = obtenerTablaVaciaHtml(mostrarColumnaImagen);
         return;
     }
 
     const opciones = agruparPorOpcion(productos);
     const llaves = Object.keys(opciones).sort((a, b) => Number(a) - Number(b));
     const numeroOpciones = llaves.length;
-    llaves.forEach((opcion, index) => {
+    contenedor.innerHTML = llaves.map((opcion) => {
         const productosOpcion = opciones[opcion];
         const resumenOpcion = calcularResumenOpcion(productosOpcion, opcion);
-        if (numeroOpciones > 1) {
-            const tituloOpcion = obtenerTituloPersonalizadoOpcion(opcion);
-            const tituloVisible = obtenerTituloOpcion(opcion) || `Opción ${opcion}`;
-            const trHeader = document.createElement("tr");
-            const clasesHeader = index > 0
-                ? "opcion-header-cell opcion-header-cell-separada"
-                : "opcion-header-cell";
-            trHeader.innerHTML = `
-                <td colspan="${mostrarColumnaImagen ? 6 : 5}" class="${clasesHeader}">
-                    <div class="opcion-header-print print-only">
-                        <span class="opcion-header-print-gap" aria-hidden="true"></span>
-                        <span class="opcion-header-print-label">Opción ${opcion}</span>
-                        <span class="opcion-header-print-name">${escaparHtml(tituloVisible)}</span>
-                    </div>
-                    <div class="opcion-header-screen d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
-                        <div class="opcion-header-title">
-                            <span class="opcion-header-kicker">Opción ${opcion}</span>
-                            <span class="opcion-header-name">${escaparHtml(tituloOpcion || `Opción ${opcion}`)}</span>
-                        </div>
-                        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2">
-                            <input
-                                type="text"
-                                class="form-control form-control-sm no-print opcion-titulo-control"
-                                data-opcion="${opcion}"
-                                placeholder="Título de la opción"
-                                value="${escaparHtml(tituloOpcion)}"
-                                oninput="actualizarTituloOpcion(${opcion}, this.value)"
-                                onchange="actualizarTituloOpcion(${opcion}, this.value)"
-                            >
-                            <div class="input-group input-group-sm no-print descuento-opcion-control">
-                                <span class="input-group-text">Descuento %</span>
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    value="${resumenOpcion.descuentoPorcentaje}"
-                                    onchange="actualizarDescuentoOpcion(${opcion}, this.value)"
-                                >
-                            </div>
-                            <div class="form-check no-print">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    id="ivaOpcion${opcion}"
-                                    ${resumenOpcion.ivaAplicado ? "checked" : ""}
-                                    onchange="actualizarIvaOpcion(${opcion}, this.checked)"
-                                >
-                                <label class="form-check-label small" for="ivaOpcion${opcion}">
-                                    Aplicar IVA 19%
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(trHeader);
-        }
+        const filasProductosHtml = productosOpcion
+            .map((producto) => obtenerFilaProductoHtml(producto, mostrarColumnaImagen))
+            .join("");
+        const encabezadoOpcionHtml = numeroOpciones > 1
+            ? obtenerFilaEncabezadoOpcionHtml(opcion, resumenOpcion, mostrarColumnaImagen)
+            : "";
+        const resumenOpcionHtml = numeroOpciones > 1
+            ? obtenerFilaResumenOpcionHtml(resumenOpcion, mostrarColumnaImagen)
+            : "";
 
-        productosOpcion.forEach((producto) => {
-            const tr = document.createElement("tr");
-            const subtotalProducto = obtenerSubtotalProducto(producto);
-            producto.subtotal = subtotalProducto;
-            const tituloProducto = obtenerTituloProducto(producto);
-            const subtituloProducto = obtenerSubtituloProducto(producto);
-            const tituloSeguro = escaparHtml(tituloProducto);
-            const subtituloSeguro = escaparHtml(subtituloProducto);
-            const descripcionCelda = subtituloSeguro
-                ? `
-                    <div class="descripcion-producto">
-                        <div class="descripcion-producto-titulo">${tituloSeguro}</div>
-                        <div class="descripcion-producto-subtitulo">${subtituloSeguro}</div>
-                    </div>
-                `
-                : `
-                    <div class="descripcion-producto">
-                        <div class="descripcion-producto-titulo">${tituloSeguro}</div>
-                    </div>
-                `;
-            const imagenCelda = producto.imagen
-                ? `<img src="${producto.imagen}" alt="Imagen de ${tituloSeguro || "producto"}" class="producto-img">`
-                : '<span class="text-muted">Sin imagen</span>';
-            const unidadTexto = producto.unidad ? ` ${escaparHtml(producto.unidad)}` : "";
-            const botonEditar = `
-                <button class="btn btn-sm btn-primary me-1" onclick="abrirModalEdicion(${producto.id})">
-                    <i class="bi bi-pencil-square"></i> Editar
-                </button>
-            `;
-
-            tr.innerHTML = `
-                <td>${descripcionCelda}</td>
-                <td class="text-center">${formatoNumero(producto.cantidad)}${unidadTexto}</td>
-                <td class="text-end">${formatoPeso(producto.precio)}</td>
-                <td class="text-end">${formatoPeso(subtotalProducto)}</td>
-                ${mostrarColumnaImagen ? `<td class="text-center columna-imagen-celda">${imagenCelda}</td>` : ""}
-                <td class="text-center">
-                    ${botonEditar}
-                    <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${producto.id})">
-                        <i class="bi bi-trash"></i> Eliminar
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        if (numeroOpciones > 1) {
-            const mostrarDetalle = resumenOpcion.valorDescuento > 0 || resumenOpcion.valorIva > 0;
-            const resumenPills = [];
-            if (mostrarDetalle) {
-                resumenPills.push(`
-                    <div class="opcion-resumen-card">
-                        <span class="opcion-resumen-card-label">Subtotal</span>
-                        <span class="opcion-resumen-card-value">${formatoPeso(resumenOpcion.subtotal)}</span>
-                    </div>
-                `);
-            }
-            if (resumenOpcion.valorDescuento > 0) {
-                resumenPills.push(`
-                    <div class="opcion-resumen-card opcion-resumen-card-descuento">
-                        <span class="opcion-resumen-card-label">Descuento ${formatoNumero(resumenOpcion.descuentoPorcentaje)}%</span>
-                        <span class="opcion-resumen-card-value">Ahorro: -${formatoPeso(resumenOpcion.valorDescuento)}</span>
-                    </div>
-                `);
-            }
-            if (resumenOpcion.valorIva > 0) {
-                resumenPills.push(`
-                    <div class="opcion-resumen-card opcion-resumen-card-iva">
-                        <span class="opcion-resumen-card-label">IVA 19%</span>
-                        <span class="opcion-resumen-card-value">+${formatoPeso(resumenOpcion.valorIva)}</span>
-                    </div>
-                `);
-            }
-            const resumenPillsHtml = resumenPills.length > 0
-                ? `<div class="opcion-resumen-inline">${resumenPills.join("")}</div>`
-                : "";
-            const trResumen = document.createElement("tr");
-            trResumen.className = "opcion-resumen-row";
-            trResumen.innerHTML = `
-                <td colspan="3" class="text-end">${resumenPillsHtml}</td>
-                <td class="text-end fw-bold">${resumenOpcion.ivaAplicado ? "Total + IVA" : "Total"}: ${formatoPeso(resumenOpcion.total)}</td>
-                ${mostrarColumnaImagen ? "<td></td>" : ""}
-                <td></td>
-            `;
-            tbody.appendChild(trResumen);
-        }
-    });
+        return `
+            <section class="opcion-bloque" data-opcion="${opcion}">
+                <table class="table table-bordered tabla-cotizacion">
+                    ${obtenerEncabezadoTablaHtml(mostrarColumnaImagen)}
+                    <tbody>
+                        ${encabezadoOpcionHtml}
+                        ${filasProductosHtml}
+                        ${resumenOpcionHtml}
+                    </tbody>
+                </table>
+            </section>
+        `;
+    }).join("");
 }
 
 function agruparPorOpcion(items) {
