@@ -3,41 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cotización ALCOP</title>
+<title>Cotización Alfombrando</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
     :root {
-        --bg: #eef2f6;
+        --bg: #f3efe7;
         --panel: #ffffff;
-        --ink: #1f2937;
-        --ink-soft: #475467;
-        --line: #d0d5dd;
-        --brand: #263548;
-        --brand-strong: #1b2735;
-        --ok: #1f7a4d;
-        --ok-strong: #18603d;
-        --danger: #b42318;
-        --danger-strong: #912018;
+        --ink: #27231f;
+        --ink-soft: #6b5f52;
+        --line: #ded3c4;
+        --brand: #765235;
+        --brand-strong: #4f3524;
+        --brand-soft: #efe3d2;
+        --accent: #b87b42;
+        --accent-soft: #fff3df;
+        --sage: #6f8066;
+        --sage-strong: #526349;
+        --ok: #5f7b4d;
+        --ok-strong: #485f39;
+        --danger: #a85536;
+        --danger-strong: #843d27;
     }
 
     body {
-        background: radial-gradient(circle at top right, #f7fafc 0%, var(--bg) 55%, #e8edf3 100%);
+        background:
+            radial-gradient(circle at top right, #fff8ed 0%, rgba(255, 248, 237, 0) 42%),
+            linear-gradient(135deg, var(--bg) 0%, #e8dfd2 100%);
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         color: var(--ink);
     }
 
     .app-card {
         border: 1px solid var(--line);
-        box-shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+        box-shadow: 0 12px 32px rgba(79, 53, 36, 0.12);
         border-radius: 12px;
         overflow: hidden;
+        background: #fffdf9;
     }
 
     .app-card .card-header {
-        background: linear-gradient(120deg, var(--brand), #314863);
+        background: linear-gradient(120deg, var(--brand-strong), #8a603e 58%, var(--accent));
         color: #fff;
         border-bottom: none;
     }
@@ -47,9 +55,8 @@
         padding: 36px;
         max-width: 940px;
         margin: 28px auto 40px;
-        border: 1px solid var(--line);
-        border-left: 6px solid var(--brand);
-        box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
+        border: 1px solid #a3a3a3;
+        box-shadow: 0 10px 24px rgba(79, 53, 36, 0.12);
         border-radius: 12px;
         position: relative;
     }
@@ -60,7 +67,7 @@
     }
 
     .tabla-cotizacion th {
-        background: #f8fafc;
+        background: #f7efe4;
         text-align: center;
         font-weight: 650;
         color: var(--brand);
@@ -77,7 +84,7 @@
 
     .tabla-cotizacion td {
         vertical-align: middle;
-        border-bottom: 1px solid #e9edf3;
+        border-bottom: 1px solid #eee4d8;
     }
 
     .opciones-tablas {
@@ -117,8 +124,8 @@
         gap: 8px;
         padding: 8px 10px;
         border-radius: 10px;
-        background: linear-gradient(135deg, var(--brand) 0%, #314863 100%);
-        box-shadow: 0 8px 14px rgba(27, 39, 53, 0.12);
+        background: linear-gradient(135deg, var(--brand-strong) 0%, var(--brand) 52%, var(--accent) 100%);
+        box-shadow: 0 8px 14px rgba(79, 53, 36, 0.16);
         color: #fff;
     }
 
@@ -208,10 +215,10 @@
         border-radius: 10px;
         padding: 14px 16px;
         min-height: 120px;
-        background-color: #f8fafc;
+        background-color: #fffaf2;
         background-image:
-            linear-gradient(#e5e7eb 1px, transparent 1px),
-            linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            linear-gradient(#eadfce 1px, transparent 1px),
+            linear-gradient(90deg, #eadfce 1px, transparent 1px);
         background-size: 16px 16px;
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
         position: relative;
@@ -315,7 +322,7 @@
     }
 
     .opcion-header-cell {
-        background: #f8fafc;
+        background: #f7efe4;
         padding: 12px 14px !important;
     }
 
@@ -348,7 +355,7 @@
     }
 
     .opcion-resumen-row td {
-        background: #fcfcfd;
+        background: #fffaf2;
         padding-top: 10px;
         padding-bottom: 14px;
     }
@@ -364,10 +371,10 @@
     .opcion-resumen-card {
         min-width: 160px;
         max-width: 100%;
-        border: 1px solid #d0d5dd;
+        border: 1px solid #decbb8;
         border-radius: 10px;
         padding: 8px 10px;
-        background: #fff;
+        background: #fffdf9;
         text-align: left;
     }
 
@@ -387,23 +394,23 @@
     }
 
     .opcion-resumen-card-descuento {
-        border-color: #fecdca;
-        background: linear-gradient(135deg, #fff7ed 0%, #fef3f2 100%);
-        box-shadow: 0 8px 18px rgba(180, 35, 24, 0.08);
+        border-color: #e8bf86;
+        background: linear-gradient(135deg, #fff7e8 0%, #f5e0be 100%);
+        box-shadow: 0 8px 18px rgba(184, 123, 66, 0.12);
     }
 
     .opcion-resumen-card-descuento .opcion-resumen-card-label {
-        color: #b42318;
+        color: #9a5c24;
     }
 
     .opcion-resumen-card-descuento .opcion-resumen-card-value {
-        color: #912018;
+        color: #743f18;
         font-size: 1.02rem;
     }
 
     .opcion-resumen-card-iva {
-        border-color: #b2ddff;
-        background: #eff8ff;
+        border-color: #c9d4b8;
+        background: #f4f8ef;
     }
 
     .totales-card {
@@ -412,8 +419,8 @@
         padding: 9px 10px;
         width: min(100%, 285px);
         margin-left: auto;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
+        background: linear-gradient(180deg, #fffdf9 0%, #f7efe4 100%);
+        box-shadow: 0 8px 16px rgba(79, 53, 36, 0.08);
     }
 
     .resumen-linea {
@@ -422,7 +429,7 @@
         align-items: center;
         gap: 6px;
         padding: 6px 8px;
-        border: 1px solid #d0d5dd;
+        border: 1px solid #decbb8;
         border-radius: 10px;
         background: #fff;
     }
@@ -458,7 +465,7 @@
         align-items: center;
         gap: 6px;
         padding: 6px 8px;
-        border: 1px solid #d0d5dd;
+        border: 1px solid #decbb8;
         border-radius: 10px;
         background: #fff;
     }
@@ -495,11 +502,11 @@
         justify-content: space-between;
         align-items: center;
         gap: 8px;
-        border: 1px solid #fecdca;
+        border: 1px solid #e8bf86;
         border-radius: 10px;
         padding: 6px 8px;
-        background: linear-gradient(135deg, #fff7ed 0%, #fef3f2 100%);
-        box-shadow: 0 8px 14px rgba(180, 35, 24, 0.08);
+        background: linear-gradient(135deg, #fff7e8 0%, #f5e0be 100%);
+        box-shadow: 0 8px 14px rgba(184, 123, 66, 0.12);
     }
 
     .descuento-highlight-copy {
@@ -514,8 +521,8 @@
         padding: 2px 6px;
         border-radius: 999px;
         background: #fff;
-        border: 1px solid #fda29b;
-        color: #b42318;
+        border: 1px solid #e8bf86;
+        color: #9a5c24;
         font-size: 0.62rem;
         font-weight: 700;
         letter-spacing: 0.03em;
@@ -526,13 +533,13 @@
     .descuento-titulo {
         font-size: 0.76rem;
         font-weight: 700;
-        color: #912018;
+        color: #743f18;
         line-height: 1.1;
     }
 
     .descuento-subtitulo {
         font-size: 0.68rem;
-        color: #7a271a;
+        color: #7a4a25;
         line-height: 1.15;
     }
 
@@ -546,7 +553,7 @@
         font-size: 0.64rem;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #b42318;
+        color: #9a5c24;
         margin-bottom: 1px;
     }
 
@@ -554,11 +561,11 @@
         font-size: 0.9rem;
         line-height: 1;
         font-weight: 800;
-        color: #912018;
+        color: #743f18;
     }
 
     .resumen-divider {
-        border-top: 1px dashed #d0d5dd;
+        border-top: 1px dashed #cbb7a5;
         margin: 5px 0;
     }
 
@@ -613,30 +620,6 @@
         max-width: 460px;
         padding-top: 2px;
     }
-
-    .lineas-decorativas {
-        display: none;
-        pointer-events: none;
-    }
-
-    .linea {
-        width: 7px;
-        border-radius: 999px;
-        box-shadow: 0 2px 5px rgba(15, 23, 42, 0.18);
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    .linea-1 { height: 54px; }
-    .linea-2 { height: 82px; }
-    .linea-3 { height: 122px; }
-    .linea-4 { height: 72px; }
-    .linea-5 { height: 142px; }
-    .linea-6 { height: 102px; }
-
-    .linea-1, .linea-4 { background: #1e3a8a; }
-    .linea-2, .linea-5 { background: #dc2626; }
-    .linea-3, .linea-6 { background: #f59e0b; }
 
     @media (max-width: 768px) {
         .cotizacion-container {
@@ -701,7 +684,7 @@
 
     @media print {
         @page {
-            margin: 12mm 10mm 12mm 10mm;
+            margin: 8mm;
         }
 
         * {
@@ -728,9 +711,9 @@
             margin: 0;
             max-width: 100%;
             box-shadow: none;
-            border: none;
-            border-radius: 0;
-            padding-left: 88px;
+            border: 1px solid #9ca3af;
+            border-radius: 4px;
+            padding: 18px 20px;
         }
 
         .tabla-cotizacion th:last-child,
@@ -754,43 +737,9 @@
             display: flex !important;
         }
 
-        .lineas-decorativas {
-            display: flex !important;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: flex-start;
-            position: absolute;
-            left: 22px;
-            top: 8px;
-            bottom: 8px;
-            width: 34px;
-        }
-
-        .lineas-decorativas .linea-1 { margin-left: 0; }
-        .lineas-decorativas .linea-2 { margin-left: 24px; }
-        .lineas-decorativas .linea-3 { margin-left: 10px; }
-        .lineas-decorativas .linea-4 { margin-left: 0; }
-        .lineas-decorativas .linea-5 { margin-left: 24px; }
-        .lineas-decorativas .linea-6 { margin-left: 10px; }
-
-        .lineas-decorativas .linea-1,
-        .lineas-decorativas .linea-4 {
-            background-color: #1e3a8a !important;
-        }
-
-        .lineas-decorativas .linea-2,
-        .lineas-decorativas .linea-5 {
-            background-color: #dc2626 !important;
-        }
-
-        .lineas-decorativas .linea-3,
-        .lineas-decorativas .linea-6 {
-            background-color: #f59e0b !important;
-        }
-
         .tabla-cotizacion th {
-            background-color: #f1f5f9 !important;
-            color: #1f2937 !important;
+            background-color: #f7efe4 !important;
+            color: #4f3524 !important;
         }
 
         .tabla-cotizacion thead {
@@ -812,7 +761,7 @@
         }
 
         .opcion-header-cell {
-            background-color: #f8fafc !important;
+            background-color: #f7efe4 !important;
             padding: 12px 14px !important;
         }
 
@@ -1047,16 +996,13 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Nombre del vendedor</label>
+                    <label class="form-label fw-bold">Firma de la cotización</label>
                     <select id="vendedor" class="form-select">
-                        <option value="">Seleccione el vendedor</option>
-                        <option value="Mateo Vanegas">Mateo Vanegas</option>
-                        <option value="Marina Arbelaez">Marina Arbelaez</option>
-                        <option value="Alba Arbelaez">Alba Arbelaez</option>
-                        <option value="Cesar Yovanny">Cesar Yovanny</option>
+                        <option value="Alfombrando" selected>Alfombrando</option>
                         <option value="Otro">Otro</option>
                     </select>
-                    <input type="text" id="vendedorOtro" class="form-control mt-2 d-none" placeholder="Nombre del vendedor">
+                    <input type="text" id="vendedorOtro" class="form-control mt-2 d-none" placeholder="Nombre de la firma">
+                    <input type="tel" id="vendedorTelefono" class="form-control mt-2" placeholder="Teléfono de contacto">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Descuento por opción</label>
@@ -1073,17 +1019,8 @@
 </div>
 
 <div class="cotizacion-container">
-    <div class="lineas-decorativas">
-        <span class="linea linea-1"></span>
-        <span class="linea linea-2"></span>
-        <span class="linea linea-3"></span>
-        <span class="linea linea-4"></span>
-        <span class="linea linea-5"></span>
-        <span class="linea linea-6"></span>
-    </div>
-
     <div class="d-flex justify-content-between align-items-center gap-3">
-        <img id="logoPreview" class="logo" src="img/logoN.png" alt="ALCOP logo">
+        <img id="logoPreview" class="logo" src="img/logo.png" alt="Alfombrando logo">
         <h6 id="fecha" class="mb-0"></h6>
     </div>
 
@@ -1094,7 +1031,7 @@
 
     <p class="mb-2">Cordial saludo,</p>
 
-    <p>Para ALCOP es un agrado poner a su disposición la siguiente cotización:</p>
+    <p>Para Alfombrando es un agrado poner a su disposición la siguiente cotización:</p>
 
     <div id="opcionesTablas" class="opciones-tablas mt-4"></div>
 
@@ -1163,7 +1100,7 @@
                 <p class="mb-2">En espera de su amable respuesta,</p>
                 <p class="mb-0">
                     Atentamente,<br>
-                    <span id="nombreVendedor">ALCOP.</span><br>
+                    <span id="nombreVendedor">Alfombrando.</span><br>
                     <span id="telefonoVendedor" class="text-muted"></span>
                 </p>
             </div>

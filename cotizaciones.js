@@ -87,13 +87,6 @@ let guardandoEdicion = false;
 const UNIDAD_DEFAULT = "Unidades";
 let notaConfirmada = false;
 let notaImagen = "";
-const VENDEDORES = {
-    "Mateo Vanegas": "315 2762255",
-    "Marina Arbelaez": "320 8940228",
-    "Alba Arbelaez": "310 4692399",
-    "Cesar Yovanny": "310 5385318",
-    "Otro": "321 7719562"
-};
 
 function leerImagenProducto() {
     return leerImagenDesdeInput("imagenProducto");
@@ -356,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const vendedorSelect = document.getElementById("vendedor");
     const vendedorOtroInput = document.getElementById("vendedorOtro");
+    const vendedorTelefonoInput = document.getElementById("vendedorTelefono");
     if (vendedorSelect) {
         vendedorSelect.addEventListener("change", () => {
             toggleVendedorOtro(vendedorSelect, vendedorOtroInput);
@@ -365,6 +359,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (vendedorOtroInput) {
         vendedorOtroInput.addEventListener("input", actualizarNombreVendedor);
+    }
+    if (vendedorTelefonoInput) {
+        vendedorTelefonoInput.addEventListener("input", actualizarNombreVendedor);
     }
 
     const notaRapidaInput = document.getElementById("notaRapidaInput");
@@ -1072,14 +1069,15 @@ function actualizarNombreVendedor() {
 
     const vendedorSelect = document.getElementById("vendedor");
     const vendedorOtroInput = document.getElementById("vendedorOtro");
+    const vendedorTelefonoInput = document.getElementById("vendedorTelefono");
     const seleccionado = vendedorSelect ? vendedorSelect.value.trim() : "";
     const esOtro = seleccionado === "Otro";
     const nombreOtro = vendedorOtroInput ? vendedorOtroInput.value.trim() : "";
     const nombre = esOtro ? nombreOtro : seleccionado;
-    nombreVendedor.innerText = nombre || "ALCOP.";
+    nombreVendedor.innerText = nombre || "Alfombrando.";
 
     if (telefonoVendedor) {
-        const telefono = seleccionado ? (VENDEDORES[seleccionado] || "") : "";
+        const telefono = vendedorTelefonoInput ? vendedorTelefonoInput.value.trim() : "";
         telefonoVendedor.innerText = telefono;
     }
 }
