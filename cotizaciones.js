@@ -74,7 +74,9 @@ function esProductoSinDescuento(producto) {
         descripcion.includes("instalacion") ||
         descripcion.includes("mantenimiento") ||
         descripcion.includes("accesorio") ||
-        descripcion.includes("accesorios")
+        descripcion.includes("accesorios") ||
+        descripcion.includes("acesorio") ||
+        descripcion.includes("acesorios")
     );
 }
 
