@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fecha = new Date();
     const opcionesFecha = { day: "numeric", month: "long", year: "numeric" };
     const fechaFormateada = fecha.toLocaleDateString("es-CO", opcionesFecha);
-    document.getElementById("fecha").innerText = `Pereira, ${fechaFormateada}`;
+    document.getElementById("fecha").innerText = `Armenia, ${fechaFormateada}`;
 
     document.getElementById("agregarProducto").addEventListener("click", agregarProducto);
     document.getElementById("generarPDF").addEventListener("click", exportarPDF);
@@ -865,21 +865,25 @@ function optimizarSaltosPaginaOpciones() {
         const separacionReal = index > 0 ? Math.max(0, bloqueTop - ultimoBottom) : 0;
         const espacioNecesario = separacionReal + alturaBloque;
         const espacioRestante = altoPaginaPx - espacioConsumido;
+
         const cabeCompleto = alturaBloque <= altoPaginaPx;
-        const requiereSalto = index > 0 && cabeCompleto && espacioNecesario > espacioRestante;
+        const requiereSalto =
+            index > 0 &&
+            cabeCompleto &&
+            espacioNecesario > espacioRestante;
 
         if (requiereSalto) {
             bloque.classList.add("opcion-bloque-salto");
+
+            // IMPORTANTE: reiniciar como primera página nueva
             espacioConsumido = alturaBloque;
         } else {
             espacioConsumido += espacioNecesario;
         }
 
-        espacioConsumido %= altoPaginaPx;
         ultimoBottom = bloqueTop + bloqueRect.height;
     });
 }
-
 function limpiarSaltosPaginaOpciones() {
     document.querySelectorAll(".opcion-bloque-salto").forEach((bloque) => {
         bloque.classList.remove("opcion-bloque-salto");
@@ -997,12 +1001,12 @@ function calcularTotales() {
     document.getElementById("descuentoValor").innerText = formatoPeso(valorDescuento);
     const descuentoBadge = document.getElementById("descuentoBadge");
     if (descuentoBadge) {
-        descuentoBadge.innerText = `${formatoNumero(resumen.descuentoPorcentaje)}% OFF`;
+        descuentoBadge.innerText = valorDescuento > 0 ? "Oferta especial" : "";
     }
     const descuentoSubtitulo = document.getElementById("descuentoSubtitulo");
     if (descuentoSubtitulo) {
         descuentoSubtitulo.innerText = valorDescuento > 0
-            ? `Descuento de ${formatoNumero(resumen.descuentoPorcentaje)}% equivalente a ${formatoPeso(valorDescuento)}`
+            ? "Oferta especial aplicada sobre el precio original"
             : "Ahorro sobre el precio original";
     }
     const descuentoOpcionUnicaInput = document.getElementById("descuentoOpcionUnica");
@@ -1067,16 +1071,11 @@ function actualizarNombreVendedor() {
         return;
     }
 
-    const vendedorSelect = document.getElementById("vendedor");
-    const vendedorOtroInput = document.getElementById("vendedorOtro");
-    const vendedorTelefonoInput = document.getElementById("vendedorTelefono");
-    const seleccionado = vendedorSelect ? vendedorSelect.value.trim() : "";
-    const esOtro = seleccionado === "Otro";
-    const nombreOtro = vendedorOtroInput ? vendedorOtroInput.value.trim() : "";
-    const nombre = esOtro ? nombreOtro : seleccionado;
-    nombreVendedor.innerText = nombre || "Alfombrando.";
+    // Siempre mostrar "Beatriz Elena Valencia" como firma
+    nombreVendedor.innerText = "Beatriz Elena Valencia";
 
     if (telefonoVendedor) {
+        const vendedorTelefonoInput = document.getElementById("vendedorTelefono");
         const telefono = vendedorTelefonoInput ? vendedorTelefonoInput.value.trim() : "";
         telefonoVendedor.innerText = telefono;
     }
