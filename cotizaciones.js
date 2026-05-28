@@ -70,7 +70,12 @@ function obtenerTextoProducto(producto) {
 
 function esProductoSinDescuento(producto) {
     const descripcion = normalizarTexto(obtenerTextoProducto(producto));
-    return descripcion.includes("instalacion") || descripcion.includes("mantenimiento");
+    return (
+        descripcion.includes("instalacion") ||
+        descripcion.includes("mantenimiento") ||
+        descripcion.includes("accesorio") ||
+        descripcion.includes("accesorios")
+    );
 }
 
 let productos = [];
